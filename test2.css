@@ -1,0 +1,82 @@
+body{
+    background-color: rgb(167, 243, 190);
+   
+}
+
+header{
+    background-color: rgb(182, 245, 255);
+    border: 5px solid rgb(0, 0, 0);
+    margin-bottom: 10px;
+     display: flex;
+     justify-content: center; /* 水平方向の中央寄せ */
+     align-items: center;    /* 垂直方向の中央寄せ */
+}
+footer{
+    background-color: rgb(98, 75, 231);
+    border: 5px solid rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+    text-align:center;
+    margin-top: 10px;
+}
+footer>h4{
+    background-color: none;
+    background-color: rgb(98, 75, 231);
+    
+}
+.container {
+    width: 100%;
+    height: 300px;
+    display: flex;
+    flex-direction: row-reverse;
+  }
+  .body {
+    width: 48%;
+    background-color: rgb(210, 245, 54);
+    margin: 0px 10px 0px 10px;
+    border: 5px solid rgb(0, 0, 0);
+   }
+  .topcontent {
+   
+  }
+  .bottomcontent {
+    //background-color: rgb(250, 116, 149);
+  }
+  .side {
+    width: 20%;
+    background-color: pink;
+    border: 5px solid rgb(0, 0, 0);
+  }
+  .topside{
+    background-color: rgb(243, 111, 212);
+    
+  }
+  .bottomside{
+    background-color: rgb(168, 243, 111);
+  }
+  .leftside {
+    width: 30%;
+    background-color: rgb(251, 247, 161);
+    border: 5px solid rgb(0, 0, 0);
+  }
+  h1{
+    /*background-color: rgb(209, 255, 182);*/
+  }
+  h4{
+    background-color: rgb(210, 245, 54);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

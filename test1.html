@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>マイ・ウェブサイト</title>
+    <style>
+        /* 💡 ページ全体の基本設定 */
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #ace9b6; /* 全体の背景色 */
+        }
+
+        /* 💡 ヘッダーの設定 */
+        header {
+            background-color: #ad97e9;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 3px solid #7c62b8; /* なじむ色に修正 */
+        }
+        h1 {
+            margin: 0;
+            color: #333;
+        }
+
+        /* 💡 メインとサイドバーを横並びにする設定（親要素） */
+        .container {
+            display: flex; /* 子要素（mainとaside）を横並びにする */
+            gap: 20px;     /* メインとサイドバーの間のすき間 */
+        }
+
+        /* 💡 メインコンテンツ（左側）の幅と装飾 */
+        main {
+            flex: 3;       /* 画面全体の比率（3つの割合を占める） */
+            background-color: #cddba4;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid #a3b574; /* なじむ色に修正 */
+        }
+
+        /* 💡 サイドバー（右側）の幅と装飾 */
+        aside {
+            flex: 1;       /* 画面全体の比率（1つの割合を占める） */
+            background-color: #c8c9d4;
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px solid #a6a8b5; /* なじむ色に修正 */
+        }
+
+        /* 💡 フッターの設定 */
+        footer {
+            background-color: #ad97e9;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 3px solid #7c62b8; /* なじむ色に修正 */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. ヘッダー -->
+    <header>
+        <h1>マイ・ウェブサイト</h1>
+    </header>
+
+    <!-- 横並びにするための外枠（コンテナ） -->
+    <div class="container">
+
+        <!-- 2. 本文（メインコンテンツ） -->
+        <main>
+            <h2>メインコンテンツ</h2>
+            <p>ここにウェブサイトの主な内容を記述します。</p>
+        </main>
+
+        <!-- 3. サイドバー（右側） -->
+        <aside>
+            <h3>サイドメニュー</h3>
+            <p>リンクやプロフィールなど。</p>
+        </aside>
+
+    </div>
+
+    <!-- 4. フッター -->
+    <footer>
+        <p>&copy; 2026 マイ・ウェブサイト</p>
+    </footer>
+
+</body>
+</html>
+
