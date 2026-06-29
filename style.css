@@ -36,7 +36,7 @@ footer>h4{
     border: 5px solid rgb(0, 0, 0);
    }
   .topcontent {
-      text-align: center;
+      //text-align: center;
   }
   .bottomcontent {
     //background-color: rgb(250, 116, 149);
@@ -66,7 +66,7 @@ footer>h4{
   }
   h2{
     background-color: rgb(210, 245, 54);
-    justify-content: center; /* 水平方向の中央寄せ */
+    text-align: center; /* 水平方向の中央寄せ */
   }
 
 
