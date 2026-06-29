@@ -36,7 +36,7 @@ footer>h4{
     border: 5px solid rgb(0, 0, 0);
    }
   .topcontent {
-   
+      text-align: center;
   }
   .bottomcontent {
     //background-color: rgb(250, 116, 149);
