@@ -64,6 +64,10 @@ footer>h4{
   h4{
     background-color: rgb(210, 245, 54);
   }
+  h2{
+    background-color: rgb(210, 245, 54);
+    justify-content: center; /* 水平方向の中央寄せ */
+  }
 
 
 
