@@ -68,7 +68,12 @@ footer>h4{
     background-color: rgb(210, 245, 54);
     text-align: center; /* 水平方向の中央寄せ */
   }
-
+  main{
+    background-color: rgb(210, 245, 54);
+    border: 5px solid rgb(0, 0, 0);
+    margin: 10px;
+    padding: 10px;
+  }
 
 
 
