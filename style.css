@@ -74,6 +74,14 @@ footer>h4{
     margin: 40px;
     padding: 10px;
   }
+  .blur-edge {
+    width: 100%;
+    max-width: 400px;
+    /* 縁をぼかすマスク処理 */
+    mask-image: radial-gradient(circle, black 60%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle, black 60%, transparent 100%);
+  }
+
 
 
 
