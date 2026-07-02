@@ -76,7 +76,7 @@ footer>h4{
   }
   .blur-edge {
     width: 100%;
-    max-width: 400px;
+    max-width: 300px;
     /* 縁をぼかすマスク処理 */
     mask-image: radial-gradient(circle, black 60%, transparent 100%);
     -webkit-mask-image: radial-gradient(circle, black 60%, transparent 100%);
