@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麻雀成績集計ダッシュボード</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mj: {
+                            green: '#064e3b',
+                            emerald: '#10b981',
+                            accent: '#059669',
+                            dark: '#0f172a',
+                            card: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center font-bold text-white shadow-lg shadow-emerald-600/30">
+                        雀
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-100 leading-tight">麻雀成績集計システム</h1>
+                        <p class="text-xs text-slate-400">Database Engine & Analytics</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="hidden md:flex space-x-1" id="desktop-nav">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-emerald-600 text-white">
+                        📊 00_ダッシュボード
+                    </button>
+                    <button onclick="switchTab('game-input')" id="nav-game-input" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+                        🀄 04_成績入力
+                    </button>
+                    <button onclick="switchTab('players')" id="nav-players" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+                        👥 01_プレイヤーマスター
+                    </button>
+                    <button onclick="switchTab('sessions')" id="nav-sessions" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+                        📅 02_対局セット
+                    </button>
+                    <button onclick="switchTab('history')" id="nav-history" class="px-4 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+                        📜 03/04_対局履歴
+                    </button>
+                </nav>
+            </div>
+        </div>
+        <!-- Mobile Navigation bar -->
+        <div class="md:hidden flex overflow-x-auto border-t border-slate-800 px-2 py-1 space-x-1 text-xs">
+            <button onclick="switchTab('dashboard')" id="m-nav-dashboard" class="px-3 py-2 whitespace-nowrap font-medium rounded text-white bg-emerald-600">ダッシュボード</button>
+            <button onclick="switchTab('game-input')" id="m-nav-game-input" class="px-3 py-2 whitespace-nowrap font-medium rounded text-slate-300">成績入力</button>
+            <button onclick="switchTab('players')" id="m-nav-players" class="px-3 py-2 whitespace-nowrap font-medium rounded text-slate-300">プレイヤー</button>
+            <button onclick="switchTab('sessions')" id="m-nav-sessions" class="px-3 py-2 whitespace-nowrap font-medium rounded text-slate-300">対局セット</button>
+            <button onclick="switchTab('history')" id="m-nav-history" class="px-3 py-2 whitespace-nowrap font-medium rounded text-slate-300">対局履歴</button>
+        </div>
+    </header>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col space-y-2"></div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- TAB 1: DASHBOARD (00_dashboard) -->
+        <section id="tab-dashboard" class="space-y-6">
+            <!-- Summary Header Banner -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 shadow-lg">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span>総合ランキング & 集計成績</span>
+                        <span class="text-xs font-normal px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">自動更新中</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">スプレッドシート `00_dashboard` タブに相当するリアルタイム全自動計算結果です</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="exportDataJSON()" class="text-xs px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition">
+                        💾 データバックアップ
+                    </button>
+                    <button onclick="resetToDefaultData()" class="text-xs px-3 py-2 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 transition">
+                        🔄 サンプル初期化
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats Overview Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="quick-stats">
+                <!-- Dynamically populated via JS -->
+            </div>
+
+            <!-- Rankings Table -->
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-xl">
+                <div class="p-4 sm:p-5 border-b border-slate-700/60 flex justify-between items-center bg-slate-800">
+                    <h3 class="font-bold text-slate-200 flex items-center gap-2">
+                        <span>🏆 個人成績一覧</span>
+                        <span class="text-xs text-slate-400 font-normal">(平均ポイント順)</span>
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-300">
+                        <thead class="text-xs text-slate-400 uppercase bg-slate-900/80 border-b border-slate-700">
+                            <tr>
+                                <th class="px-4 py-3 text-center">順位</th>
+                                <th class="px-4 py-3">ID / 氏名</th>
+                                <th class="px-4 py-3 text-right">対局数</th>
+                                <th class="px-4 py-3 text-right">通算pt</th>
+                                <th class="px-4 py-3 text-right text-emerald-400">平均pt</th>
+                                <th class="px-4 py-3 text-right text-amber-400">平均順位</th>
+                                <th class="px-4 py-3 text-right">1位(率)</th>
+                                <th class="px-4 py-3 text-right">連対率</th>
+                                <th class="px-4 py-3 text-right">ラス率</th>
+                                <th class="px-4 py-3 text-center">順位分布</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-table-body" class="divide-y divide-slate-700/50">
+                            <!-- Populated JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: GAME RESULT INPUT (04_results) -->
+        <section id="tab-game-input" class="hidden space-y-6">
+            <div class="bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl shadow-xl max-w-4xl mx-auto space-y-6">
+                <div class="border-b border-slate-700 pb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        🀄 対局結果（1半荘）の入力
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">4人の素点を入力すると、ウマ・オカ・順位・ポイントを自動計算して登録します。</p>
+                </div>
+
+                <form id="game-form" onsubmit="handleGameSubmit(event)" class="space-y-6">
+                    <!-- Session and Game Metadata -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/60 p-4 rounded-xl border border-slate-700/40">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">対局セット (session_id)</label>
+                            <select id="input-session-id" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" required>
+                                <!-- Dynamic options -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">卓コード (table_code)</label>
+                            <input type="text" id="input-table-code" value="A卓" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">半荘番号 (game_number)</label>
+                            <input type="number" id="input-game-number" value="1" min="1" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" required>
+                        </div>
+                    </div>
+
+                    <!-- Rules setup inline -->
+                    <div class="flex items-center justify-between text-xs text-slate-400 bg-slate-900/40 px-4 py-2.5 rounded-lg border border-slate-800">
+                        <span>💡 自動計算ルール: 25,000点持ち / 30,000点返し (オカ +20.0pt) / ウマ 10-30 (+30, +10, -10, -30)</span>
+                    </div>
+
+                    <!-- 4 Player Score Inputs -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-semibold text-slate-200">席順 & プレイヤー素点入力</h3>
+                            <button type="button" onclick="calculatePreviewScores()" class="text-xs text-emerald-400 hover:underline">
+                                ⚡ 計算プレビュー更新
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Seat East -->
+                            <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700/80 space-y-3 relative">
+                                <div class="flex justify-between items-center">
+                                    <span class="px-2 py-0.5 text-xs font-bold bg-rose-900/60 text-rose-300 border border-rose-700/60 rounded">東家</span>
+                                    <span id="preview-pt-0" class="text-xs font-mono font-bold text-slate-400">-- pt</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <select id="player-seat-0" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white" onchange="calculatePreviewScores()" required>
+                                        <!-- Player list -->
+                                    </select>
+                                    <input type="number" id="score-seat-0" placeholder="素点 (例: 35000)" step="100" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white font-mono" oninput="calculatePreviewScores()" required>
+                                </div>
+                            </div>
+
+                            <!-- Seat South -->
+                            <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700/80 space-y-3 relative">
+                                <div class="flex justify-between items-center">
+                                    <span class="px-2 py-0.5 text-xs font-bold bg-amber-900/60 text-amber-300 border border-amber-700/60 rounded">南家</span>
+                                    <span id="preview-pt-1" class="text-xs font-mono font-bold text-slate-400">-- pt</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <select id="player-seat-1" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white" onchange="calculatePreviewScores()" required>
+                                        <!-- Player list -->
+                                    </select>
+                                    <input type="number" id="score-seat-1" placeholder="素点 (例: 28000)" step="100" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white font-mono" oninput="calculatePreviewScores()" required>
+                                </div>
+                            </div>
+
+                            <!-- Seat West -->
+                            <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700/80 space-y-3 relative">
+                                <div class="flex justify-between items-center">
+                                    <span class="px-2 py-0.5 text-xs font-bold bg-emerald-900/60 text-emerald-300 border border-emerald-700/60 rounded">西家</span>
+                                    <span id="preview-pt-2" class="text-xs font-mono font-bold text-slate-400">-- pt</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <select id="player-seat-2" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white" onchange="calculatePreviewScores()" required>
+                                        <!-- Player list -->
+                                    </select>
+                                    <input type="number" id="score-seat-2" placeholder="素点 (例: 22000)" step="100" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white font-mono" oninput="calculatePreviewScores()" required>
+                                </div>
+                            </div>
+
+                            <!-- Seat North -->
+                            <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700/80 space-y-3 relative">
+                                <div class="flex justify-between items-center">
+                                    <span class="px-2 py-0.5 text-xs font-bold bg-sky-900/60 text-sky-300 border border-sky-700/60 rounded">北家</span>
+                                    <span id="preview-pt-3" class="text-xs font-mono font-bold text-slate-400">-- pt</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <select id="player-seat-3" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white" onchange="calculatePreviewScores()" required>
+                                        <!-- Player list -->
+                                    </select>
+                                    <input type="number" id="score-seat-3" placeholder="素点 (例: 15000)" step="100" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white font-mono" oninput="calculatePreviewScores()" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Validation Check Sum Bar -->
+                    <div id="score-sum-bar" class="p-3 rounded-lg bg-slate-900 border border-slate-700 flex justify-between items-center text-xs font-mono">
+                        <span class="text-slate-400">合計素点: <strong id="total-score-val" class="text-white">0</strong> / 100,000</span>
+                        <span id="score-status-badge" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400">未入力</span>
+                    </div>
+
+                    <button type="submit" id="submit-game-btn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-xl shadow-lg shadow-emerald-600/20 transition duration-150">
+                        💾 対局結果を記録する (`04_results` 追加)
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- TAB 3: PLAYERS MASTER (01_players) -->
+        <section id="tab-players" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Add Player Form -->
+                <div class="bg-slate-800/80 border border-slate-700/60 p-5 rounded-2xl shadow-xl h-fit">
+                    <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        ➕ プレイヤー新規登録 (`01_players`)
+                    </h3>
+                    <form id="add-player-form" onsubmit="handleAddPlayer(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">プレイヤーID (固定)</label>
+                            <input type="text" id="new-player-id" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-400 font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">氏名 / ニックネーム</label>
+                            <input type="text" id="new-player-name" placeholder="例: 佐藤" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">備考 (`note`)</label>
+                            <input type="text" id="new-player-note" placeholder="例: サークルメンバー" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold text-white text-sm rounded-lg shadow-md transition">
+                            プレイヤー追加
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Players Master List -->
+                <div class="lg:col-span-2 bg-slate-800/80 border border-slate-700/60 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="p-4 border-b border-slate-700 bg-slate-800 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-200">登録済みプレイヤー一覧</h3>
+                        <span class="text-xs text-slate-400" id="player-count-badge">4名登録中</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-slate-300">
+                            <thead class="text-xs text-slate-400 uppercase bg-slate-900/80 border-b border-slate-700">
+                                <tr>
+                                    <th class="px-4 py-3">ID</th>
+                                    <th class="px-4 py-3">氏名</th>
+                                    <th class="px-4 py-3">備考</th>
+                                    <th class="px-4 py-3 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="players-table-body" class="divide-y divide-slate-700/50">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: SESSIONS MASTER (02_sessions) -->
+        <section id="tab-sessions" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Add Session Form -->
+                <div class="bg-slate-800/80 border border-slate-700/60 p-5 rounded-2xl shadow-xl h-fit">
+                    <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        ➕ 対局セット新規登録 (`02_sessions`)
+                    </h3>
+                    <form id="add-session-form" onsubmit="handleAddSession(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">セッションID</label>
+                            <input type="text" id="new-session-id" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-400 font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">対局日 (`play_date`)</label>
+                            <input type="date" id="new-session-date" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">場所 / 雀荘 (`location`)</label>
+                            <input type="text" id="new-session-location" placeholder="例: 渋谷店" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">ルール区分 (`rule_type`)</label>
+                            <input type="text" id="new-session-rule" value="Mルール (10-30)" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">メモ (`note`)</label>
+                            <input type="text" id="new-session-note" placeholder="例: 第1回定期セット" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold text-white text-sm rounded-lg shadow-md transition">
+                            対局セットを作成
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Sessions List -->
+                <div class="lg:col-span-2 bg-slate-800/80 border border-slate-700/60 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="p-4 border-b border-slate-700 bg-slate-800 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-200">対局セット（日・イベント）一覧</h3>
+                        <span class="text-xs text-slate-400" id="session-count-badge">1件登録中</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-slate-300">
+                            <thead class="text-xs text-slate-400 uppercase bg-slate-900/80 border-b border-slate-700">
+                                <tr>
+                                    <th class="px-4 py-3">ID</th>
+                                    <th class="px-4 py-3">対局日</th>
+                                    <th class="px-4 py-3">場所</th>
+                                    <th class="px-4 py-3">ルール</th>
+                                    <th class="px-4 py-3">メモ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessions-table-body" class="divide-y divide-slate-700/50">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: GAME HISTORY (03_games & 04_results) -->
+        <section id="tab-history" class="hidden space-y-6">
+            <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl overflow-hidden shadow-xl">
+                <div class="p-4 sm:p-5 border-b border-slate-700 bg-slate-800 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-200">📜 対局・スコア明細履歴 (`03_games` & `04_results`)</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">記録された各半荘のトップからラストまでの詳細成績です</p>
+                    </div>
+                </div>
+                <div id="games-history-container" class="p-4 space-y-4">
+                    <!-- Dynamic Game Cards -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Default Sample Initial Database State (Matches Database Guide Schema)
+        const DEFAULT_DATA = {
+            players: [
+                { player_id: 'P001', name: '山田', note: 'マスター' },
+                { player_id: 'P002', name: '佐藤', note: '' },
+                { player_id: 'P003', name: '鈴木', note: '' },
+                { player_id: 'P004', name: '田中', note: '' }
+            ],
+            sessions: [
+                { session_id: 'S001', play_date: '2026-07-24', location: '渋谷店', rule_type: 'Mルール(10-30)', note: '第1回定期セット' }
+            ],
+            games: [
+                { game_id: 'G001', session_id: 'S001', table_code: 'A卓', game_number: 1 },
+                { game_id: 'G002', session_id: 'S001', table_code: 'A卓', game_number: 2 }
+            ],
+            results: [
+                // Game 1
+                { result_id: 'R0001', game_id: 'G001', player_id: 'P001', seat: '東', raw_score: 42000, point: 52.0, rank: 1 },
+                { result_id: 'R0002', game_id: 'G001', player_id: 'P002', seat: '南', raw_score: 29000, point: 9.0, rank: 2 },
+                { result_id: 'R0003', game_id: 'G001', player_id: 'P003', seat: '西', raw_score: 18000, point: -22.0, rank: 3 },
+                { result_id: 'R0004', game_id: 'G001', player_id: 'P004', seat: '北', raw_score: 11000, point: -39.0, rank: 4 },
+                // Game 2
+                { result_id: 'R0005', game_id: 'G002', player_id: 'P002', seat: '東', raw_score: 38000, point: 48.0, rank: 1 },
+                { result_id: 'R0006', game_id: 'G002', player_id: 'P004', seat: '南', raw_score: 31000, point: 11.0, rank: 2 },
+                { result_id: 'R0007', game_id: 'G002', player_id: 'P001', seat: '西', raw_score: 21000, point: -19.0, rank: 3 },
+                { result_id: 'R0008', game_id: 'G002', player_id: 'P003', seat: '北', raw_score: 10000, point: -40.0, rank: 4 }
+            ]
+        };
+
+        // App State
+        let db = loadDatabase();
+
+        function loadDatabase() {
+            const saved = localStorage.getItem('mahjong_db_v1');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch(e) {
+                    console.error('Failed to parse local DB', e);
+                }
+            }
+            return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+
+        function saveDatabase() {
+            localStorage.setItem('mahjong_db_v1', JSON.stringify(db));
+            renderAllTabs();
+        }
+
+        function resetToDefaultData() {
+            db = JSON.parse(JSON.stringify(DEFAULT_DATA));
+            saveDatabase();
+            showToast('サンプルデータに初期化しました');
+        }
+
+        function switchTab(tabKey) {
+            const tabs = ['dashboard', 'game-input', 'players', 'sessions', 'history'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const navEl = document.getElementById(`nav-${t}`);
+                const mNavEl = document.getElementById(`m-nav-${t}`);
+
+                if (t === tabKey) {
+                    el.classList.remove('hidden');
+                    if (navEl) {
+                        navEl.className = "px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-emerald-600 text-white";
+                    }
+                    if (mNavEl) {
+                        mNavEl.className = "px-3 py-2 whitespace-nowrap font-medium rounded text-white bg-emerald-600";
+                    }
+                } else {
+                    el.classList.add('hidden');
+                    if (navEl) {
+                        navEl.className = "px-4 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors";
+                    }
+                    if (mNavEl) {
+                        mNavEl.className = "px-3 py-2 whitespace-nowrap font-medium rounded text-slate-300";
+                    }
+                }
+            });
+            if (tabKey === 'game-input') {
+                populateGameInputDropdowns();
+            }
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center justify-between min-w-[220px] border border-emerald-500 animate-bounce';
+            toast.innerHTML = `<span>✅ ${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        function renderDashboard() {
+            const tbody = document.getElementById('dashboard-table-body');
+            tbody.innerHTML = '';
+
+            // Calculate aggregated statistics per player
+            const stats = db.players.map(p => {
+                const pResults = db.results.filter(r => r.player_id === p.player_id);
+                const gamesCount = pResults.length;
+                const totalPt = pResults.reduce((acc, curr) => acc + curr.point, 0);
+                const avgPt = gamesCount > 0 ? (totalPt / gamesCount) : 0;
+                
+                const sumRank = pResults.reduce((acc, curr) => acc + curr.rank, 0);
+                const avgRank = gamesCount > 0 ? (sumRank / gamesCount) : 0;
+
+                const topCount = pResults.filter(r => r.rank === 1).length;
+                const rentaiCount = pResults.filter(r => r.rank <= 2).length;
+                const rasCount = pResults.filter(r => r.rank === 4).length;
+
+                const topRate = gamesCount > 0 ? (topCount / gamesCount) * 100 : 0;
+                const rentaiRate = gamesCount > 0 ? (rentaiCount / gamesCount) * 100 : 0;
+                const rasRate = gamesCount > 0 ? (rasCount / gamesCount) * 100 : 0;
+
+                const rankDistribution = [
+                    pResults.filter(r => r.rank === 1).length,
+                    pResults.filter(r => r.rank === 2).length,
+                    pResults.filter(r => r.rank === 3).length,
+                    pResults.filter(r => r.rank === 4).length
+                ];
+
+                return {
+                    player_id: p.player_id,
+                    name: p.name,
+                    gamesCount,
+                    totalPt,
+                    avgPt,
+                    avgRank,
+                    topCount,
+                    topRate,
+                    rentaiRate,
+                    rasRate,
+                    rankDistribution
+                };
+            });
+
+            // Sort by Avg Points descending
+            stats.sort((a, b) => b.avgPt - a.avgPt);
+
+            // Render Overview Stat Cards
+            const totalGames = db.games.length;
+            const totalSessions = db.sessions.length;
+            const topPlayer = stats.length > 0 && stats[0].gamesCount > 0 ? stats[0].name : '-';
+            const topAvgPt = stats.length > 0 && stats[0].gamesCount > 0 ? `${stats[0].avgPt >= 0 ? '+' : ''}${stats[0].avgPt.toFixed(1)}pt` : '0pt';
+
+            document.getElementById('quick-stats').innerHTML = `
+                <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+                    <div class="text-xs text-slate-400">総対局数 (03_games)</div>
+                    <div class="text-2xl font-bold text-white mt-1">${totalGames} <span class="text-xs font-normal text-slate-400">半荘</span></div>
+                </div>
+                <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+                    <div class="text-xs text-slate-400">登録プレイヤー</div>
+                    <div class="text-2xl font-bold text-emerald-400 mt-1">${db.players.length} <span class="text-xs font-normal text-slate-400">名</span></div>
+                </div>
+                <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+                    <div class="text-xs text-slate-400">首位プレイヤー</div>
+                    <div class="text-2xl font-bold text-amber-300 mt-1">${topPlayer}</div>
+                </div>
+                <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+                    <div class="text-xs text-slate-400">首位平均ポイント</div>
+                    <div class="text-2xl font-bold text-emerald-400 mt-1">${topAvgPt}</div>
+                </div>
+            `;
+
+            if (stats.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">データがありません</td></tr>`;
+                return;
+            }
+
+            stats.forEach((s, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                
+                const totalPtClass = s.totalPt > 0 ? 'text-emerald-400 font-bold' : (s.totalPt < 0 ? 'text-rose-400 font-bold' : 'text-slate-300');
+                const avgPtClass = s.avgPt > 0 ? 'text-emerald-400 font-bold' : (s.avgPt < 0 ? 'text-rose-400 font-bold' : 'text-slate-300');
+
+                // Medal indicator
+                let rankBadge = `<span class="text-slate-400 font-mono font-bold">${idx + 1}</span>`;
+                if (idx === 0) rankBadge = `🥇 <span class="text-amber-300 font-bold">1</span>`;
+                else if (idx === 1) rankBadge = `🥈 <span class="text-slate-300 font-bold">2</span>`;
+                else if (idx === 2) rankBadge = `🥉 <span class="text-amber-600 font-bold">3</span>`;
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-center">${rankBadge}</td>
+                    <td class="px-4 py-3 font-semibold text-white">
+                        <span class="text-xs font-mono text-slate-400 mr-1.5">[${s.player_id}]</span>${s.name}
+                    </td>
+                    <td class="px-4 py-3 text-right font-mono">${s.gamesCount}</td>
+                    <td class="px-4 py-3 text-right font-mono ${totalPtClass}">${s.totalPt >= 0 ? '+' : ''}${s.totalPt.toFixed(1)}</td>
+                    <td class="px-4 py-3 text-right font-mono ${avgPtClass}">${s.avgPt >= 0 ? '+' : ''}${s.avgPt.toFixed(1)}</td>
+                    <td class="px-4 py-3 text-right font-mono text-amber-300 font-bold">${s.gamesCount > 0 ? s.avgRank.toFixed(2) : '-'}</td>
+                    <td class="px-4 py-3 text-right font-mono">${s.topCount} (${s.topRate.toFixed(0)}%)</td>
+                    <td class="px-4 py-3 text-right font-mono">${s.rentaiRate.toFixed(0)}%</td>
+                    <td class="px-4 py-3 text-right font-mono text-rose-400">${s.rasRate.toFixed(0)}%</td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-1 text-[10px] font-mono">
+                            <span class="px-1.5 py-0.5 bg-amber-900/50 text-amber-300 rounded">${s.rankDistribution[0]}</span>
+                            <span class="px-1.5 py-0.5 bg-slate-700 text-slate-200 rounded">${s.rankDistribution[1]}</span>
+                            <span class="px-1.5 py-0.5 bg-slate-800 text-slate-400 rounded">${s.rankDistribution[2]}</span>
+                            <span class="px-1.5 py-0.5 bg-rose-950/60 text-rose-300 rounded">${s.rankDistribution[3]}</span>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function populateGameInputDropdowns() {
+            // Populate Session Select
+            const sessionSelect = document.getElementById('input-session-id');
+            sessionSelect.innerHTML = db.sessions.map(s => 
+                `<option value="${s.session_id}">${s.session_id} - ${s.play_date} (${s.location})</option>`
+            ).join('');
+
+            // Populate Players Select for 4 seats
+            const defaultSeats = ['P001', 'P002', 'P003', 'P004'];
+            for (let i = 0; i < 4; i++) {
+                const select = document.getElementById(`player-seat-${i}`);
+                select.innerHTML = db.players.map(p => 
+                    `<option value="${p.player_id}">${p.player_id}: ${p.name}</option>`
+                ).join('');
+                if (defaultSeats[i] && db.players.some(p => p.player_id === defaultSeats[i])) {
+                    select.value = defaultSeats[i];
+                }
+            }
+
+            // Set next game number dynamically
+            const lastGame = db.games[db.games.length - 1];
+            if (lastGame) {
+                document.getElementById('input-game-number').value = lastGame.game_number + 1;
+            }
+
+            calculatePreviewScores();
+        }
+
+        function calculatePreviewScores() {
+            const rawScores = [];
+            for (let i = 0; i < 4; i++) {
+                const val = parseInt(document.getElementById(`score-seat-${i}`).value) || 0;
+                rawScores.push(val);
+            }
+
+            const totalScore = rawScores.reduce((a, b) => a + b, 0);
+            const sumBar = document.getElementById('total-score-val');
+            const badge = document.getElementById('score-status-badge');
+            sumBar.textContent = totalScore.toLocaleString();
+
+            if (totalScore === 100000) {
+                badge.textContent = "合計点一致 OK (100,000点)";
+                badge.className = "px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
+            } else {
+                badge.textContent = `差額: ${(100000 - totalScore).toLocaleString()}点`;
+                badge.className = "px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800";
+            }
+
+            // Compute Points and Ranks Preview
+            // Standard Rules: 25k start, 30k return (Oka +20 to 1st). Uma 10-30 (+30, +10, -10, -30)
+            // Create items with index
+            let items = rawScores.map((score, idx) => ({ idx, score }));
+            
+            // Sort by score descending (tie breaker: seat order East > South > West > North)
+            items.sort((a, b) => b.score - a.score || a.idx - b.idx);
+
+            const umas = [30, 10, -10, -30];
+            const oka = 20; // (30,000 - 25,000) * 4 / 1000 = 20pt
+
+            const calculatedPts = new Array(4);
+            items.forEach((item, rankIdx) => {
+                const rank = rankIdx + 1;
+                // Score diff from 30,000
+                let pt = (item.score - 30000) / 1000.0;
+                // Add Uma
+                pt += umas[rankIdx];
+                // Top receives Oka
+                if (rank === 1) {
+                    pt += oka;
+                }
+                calculatedPts[item.idx] = { rank, pt };
+            });
+
+            for (let i = 0; i < 4; i++) {
+                const previewEl = document.getElementById(`preview-pt-${i}`);
+                if (document.getElementById(`score-seat-${i}`).value !== '') {
+                    const res = calculatedPts[i];
+                    const ptFormatted = `${res.pt >= 0 ? '+' : ''}${res.pt.toFixed(1)}pt`;
+                    previewEl.textContent = `${res.rank}位 / ${ptFormatted}`;
+                    previewEl.className = `text-xs font-mono font-bold ${res.pt >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                } else {
+                    previewEl.textContent = '-- pt';
+                    previewEl.className = 'text-xs font-mono font-bold text-slate-400';
+                }
+            }
+        }
+
+        function handleGameSubmit(e) {
+            e.preventDefault();
+
+            const session_id = document.getElementById('input-session-id').value;
+            const table_code = document.getElementById('input-table-code').value;
+            const game_number = parseInt(document.getElementById('input-game-number').value);
+
+            // Read seat values & scores
+            const seats = ['東', '南', '西', '北'];
+            const inputs = [];
+            const playerIds = new Set();
+
+            for (let i = 0; i < 4; i++) {
+                const player_id = document.getElementById(`player-seat-${i}`).value;
+                const raw_score = parseInt(document.getElementById(`score-seat-${i}`).value);
+                
+                if (playerIds.has(player_id)) {
+                    alert('同じプレイヤーが複数の席に選択されています');
+                    return;
+                }
+                playerIds.add(player_id);
+
+                inputs.push({
+                    seatIndex: i,
+                    seat: seats[i],
+                    player_id,
+                    raw_score
+                });
+            }
+
+            const totalScore = inputs.reduce((acc, curr) => acc + curr.raw_score, 0);
+            if (totalScore !== 100000) {
+                if (!confirm(`合計素点が100,000点ではありません (${totalScore}点)。このまま登録しますか？`)) {
+                    return;
+                }
+            }
+
+            // Create new Game Record (`03_games`)
+            const game_id = `G${String(db.games.length + 1).padStart(3, '0')}`;
+            db.games.push({
+                game_id,
+                session_id,
+                table_code,
+                game_number
+            });
+
+            // Calculate Points and Ranks for `04_results`
+            let sorted = [...inputs].sort((a, b) => b.raw_score - a.raw_score || a.seatIndex - b.seatIndex);
+            const umas = [30, 10, -10, -30];
+            const oka = 20;
+
+            sorted.forEach((item, rankIdx) => {
+                const rank = rankIdx + 1;
+                let pt = (item.raw_score - 30000) / 1000.0 + umas[rankIdx];
+                if (rank === 1) pt += oka;
+
+                const result_id = `R${String(db.results.length + 1).padStart(4, '0')}`;
+                db.results.push({
+                    result_id,
+                    game_id,
+                    player_id: item.player_id,
+                    seat: item.seat,
+                    raw_score: item.raw_score,
+                    point: parseFloat(pt.toFixed(1)),
+                    rank
+                });
+            });
+
+            saveDatabase();
+            showToast(`対局 [${game_id}] を記録しました`);
+            switchTab('dashboard');
+        }
+
+        function renderPlayers() {
+            const tbody = document.getElementById('players-table-body');
+            tbody.innerHTML = '';
+
+            document.getElementById('player-count-badge').textContent = `${db.players.length}名登録中`;
+
+            // Suggest next ID
+            const nextNum = db.players.length + 1;
+            document.getElementById('new-player-id').value = `P${String(nextNum).padStart(3, '0')}`;
+
+            db.players.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 border-b border-slate-700/40";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-mono text-emerald-400 font-bold">${p.player_id}</td>
+                    <td class="px-4 py-3 font-semibold text-white">${p.name}</td>
+                    <td class="px-4 py-3 text-slate-400 text-xs">${p.note || '-'}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button onclick="deletePlayer('${p.player_id}')" class="text-xs text-rose-400 hover:text-rose-300">削除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleAddPlayer(e) {
+            e.preventDefault();
+            const player_id = document.getElementById('new-player-id').value;
+            const name = document.getElementById('new-player-name').value.trim();
+            const note = document.getElementById('new-player-note').value.trim();
+
+            if (!name) return;
+
+            db.players.push({ player_id, name, note });
+            document.getElementById('new-player-name').value = '';
+            document.getElementById('new-player-note').value = '';
+
+            saveDatabase();
+            showToast(`プレイヤー [${name}] を追加しました`);
+        }
+
+        function deletePlayer(player_id) {
+            const hasResults = db.results.some(r => r.player_id === player_id);
+            if (hasResults) {
+                alert('対局記録が存在するプレイヤーは削除できません。');
+                return;
+            }
+            db.players = db.players.filter(p => p.player_id !== player_id);
+            saveDatabase();
+            showToast('プレイヤーを削除しました');
+        }
+
+        function renderSessions() {
+            const tbody = document.getElementById('sessions-table-body');
+            tbody.innerHTML = '';
+
+            document.getElementById('session-count-badge').textContent = `${db.sessions.length}件登録中`;
+
+            // Suggest next ID
+            const nextNum = db.sessions.length + 1;
+            document.getElementById('new-session-id').value = `S${String(nextNum).padStart(3, '0')}`;
+            
+            // Set today's date
+            if (!document.getElementById('new-session-date').value) {
+                document.getElementById('new-session-date').value = new Date().toISOString().split('T')[0];
+            }
+
+            db.sessions.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 border-b border-slate-700/40";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-mono text-emerald-400 font-bold">${s.session_id}</td>
+                    <td class="px-4 py-3 font-semibold text-white">${s.play_date}</td>
+                    <td class="px-4 py-3 text-slate-300">${s.location}</td>
+                    <td class="px-4 py-3 text-xs text-amber-300 font-mono">${s.rule_type}</td>
+                    <td class="px-4 py-3 text-slate-400 text-xs">${s.note || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleAddSession(e) {
+            e.preventDefault();
+            const session_id = document.getElementById('new-session-id').value;
+            const play_date = document.getElementById('new-session-date').value;
+            const location = document.getElementById('new-session-location').value.trim();
+            const rule_type = document.getElementById('new-session-rule').value.trim();
+            const note = document.getElementById('new-session-note').value.trim();
+
+            db.sessions.push({ session_id, play_date, location, rule_type, note });
+            saveDatabase();
+            showToast(`対局セット [${session_id}] を追加しました`);
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('games-history-container');
+            container.innerHTML = '';
+
+            if (db.games.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-slate-500">対局記録がありません</div>';
+                return;
+            }
+
+            // Render game cards descending
+            const sortedGames = [...db.games].reverse();
+
+            sortedGames.forEach(g => {
+                const session = db.sessions.find(s => s.session_id === g.session_id) || {};
+                const gResults = db.results.filter(r => r.game_id === g.game_id);
+                gResults.sort((a, b) => a.rank - b.rank);
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/80 border border-slate-700/70 rounded-xl p-4 space-y-3";
+
+                let rowsHtml = gResults.map(r => {
+                    const player = db.players.find(p => p.player_id === r.player_id) || {};
+                    const rankBadges = ['🥇 1位', '🥈 2位', '🥉 3位', '4位'];
+                    const ptClass = r.point >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                    return `
+                        <tr class="text-xs border-b border-slate-800/60">
+                            <td class="py-1.5 font-bold text-slate-300">${rankBadges[r.rank - 1]}</td>
+                            <td class="py-1.5 font-semibold text-white">${player.name || r.player_id} <span class="text-[10px] text-slate-500 font-mono">(${r.seat})</span></td>
+                            <td class="py-1.5 text-right font-mono text-slate-300">${r.raw_score.toLocaleString()}点</td>
+                            <td class="py-1.5 text-right font-mono font-bold ${ptClass}">${r.point >= 0 ? '+' : ''}${r.point.toFixed(1)}pt</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-bold text-emerald-400">${g.game_id}</span>
+                            <span class="text-slate-300 font-semibold">${session.play_date || ''} (${session.location || ''})</span>
+                            <span class="bg-slate-800 text-slate-400 px-2 py-0.5 rounded">${g.table_code} 第${g.game_number}半荘</span>
+                        </div>
+                        <button onclick="deleteGame('${g.game_id}')" class="text-rose-400 hover:underline">削除</button>
+                    </div>
+                    <table class="w-full text-left">
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteGame(game_id) {
+            if (!confirm(`対局 ${game_id} を削除してもよろしいですか？`)) return;
+            db.games = db.games.filter(g => g.game_id !== game_id);
+            db.results = db.results.filter(r => r.game_id !== game_id);
+            saveDatabase();
+            showToast(`対局 ${game_id} を削除しました`);
+        }
+
+        // Backup / Export
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `mahjong_db_${new Date().toISOString().split('T')[0]}.json`);
+            dlAnchorElem.click();
+        }
+
+        function renderAllTabs() {
+            renderDashboard();
+            renderPlayers();
+            renderSessions();
+            renderHistory();
+        }
+
+        window.onload = function() {
+            renderAllTabs();
+            // Default show Dashboard
+            switchTab('dashboard');
+        };
+    </script>
+</body>
+</html>
