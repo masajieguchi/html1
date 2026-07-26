@@ -26,12 +26,10 @@ footer > h4 {
 }
 
 /* --- 2段目の3列レイアウトエリア --- */
-.container {
-  width: 100%;
-  display: flex;
-  flex-direction: row; /* 左から順に配置 */
-  gap: 10px; /* 要素同士のすき間を自動で空ける */
-  box-sizing: border-box;
+.container {  
+     display: flex;
+     justify-content: space-evenly; /* 端も含めて完全均等 */
+     /* または justify-content: space-between; */   
 }
 
 /* 全ての列に border や padding の計算を正しく適用 */
