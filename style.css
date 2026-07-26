@@ -51,6 +51,7 @@ footer>h4{
     
   }
   .bottomside{
+    width: 35%;  
     background-color: rgb(168, 243, 111);
   }
   .leftside {
