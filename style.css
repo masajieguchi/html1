@@ -1,87 +1,96 @@
-body{
-    background-color: rgb(167, 243, 190);
-   
+body {
+  background-color: rgb(167, 243, 190);
+  margin: 0;
+  padding: 0;
 }
 
-header{
-    background-color: rgb(182, 245, 255);
-    border: 5px solid rgb(0, 0, 0);
-    margin-bottom: 10px;
-     display: flex;
-     justify-content: center; /* 水平方向の中央寄せ */
-     align-items: center;    /* 垂直方向の中央寄せ */
+header {
+  background-color: rgb(182, 245, 255);
+  border: 5px solid rgb(0, 0, 0);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center; /* 水平方向の中央寄せ */
+  align-items: center;     /* 垂直方向の中央寄せ */
 }
-footer{
-    background-color: rgb(98, 75, 231);
-    border: 5px solid rgb(0, 0, 0);
-    color: rgb(255, 255, 255);
-    text-align:center;
-    margin-top: 10px;
+
+footer {
+  background-color: rgb(98, 75, 231);
+  border: 5px solid rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
+  text-align: center;
+  margin-top: 10px;
 }
-footer>h4{
-    background-color: none;
-    background-color: rgb(98, 75, 231);
-    
+
+footer > h4 {
+  background-color: rgb(98, 75, 231);
 }
+
+/* --- 2段目の3列レイアウトエリア --- */
 .container {
-    width: 100%;
-    height: 300px;
-    display: flex;
-    flex-direction: row-reverse;
-  }
-  .body {
-    width: 48%;
-    background-color: rgb(210, 245, 54);
-    margin: 0px 10px 0px 10px;
-    border: 5px solid rgb(0, 0, 0);
-   }
-  .topcontent {
-      //text-align: center;
-  }
-  .bottomcontent {
-    //background-color: rgb(250, 116, 149);
-  }
-  .side {
-    width: 20%;
-    background-color: pink;
-    border: 5px solid rgb(0, 0, 0);
-  }
-  .topside{
-    background-color: rgb(243, 111, 212);
-    
-  }
-  .bottomside{
-    width: 35%;  
-    background-color: rgb(168, 243, 111);
-  }
-  .leftside {
-    width: 35%;
-    background-color: rgb(251, 247, 161);
-    border: 5px solid rgb(0, 0, 0);
-  }
-  h1{
-    /*background-color: rgb(209, 255, 182);*/
-  }
-  h4{
-    background-color: rgb(210, 245, 54);
-  }
-  h2{
-    background-color: rgb(210, 245, 54);
-    text-align: center; /* 水平方向の中央寄せ */
-  }
-  main{
-    background-color: rgb(210, 245, 54);
-    
-    margin: 40px;
-    padding: 10px;
-  }
-  .blur-edge {
-    width: 100%;
-    max-width: 300px;
-    /* 縁をぼかすマスク処理 */
-    mask-image: radial-gradient(circle, black 60%, transparent 100%);
-    -webkit-mask-image: radial-gradient(circle, black 60%, transparent 100%);
-  }
+  width: 100%;
+  display: flex;
+  flex-direction: row; /* 左から順に配置 */
+  gap: 10px; /* 要素同士のすき間を自動で空ける */
+  box-sizing: border-box;
+}
+
+/* 全ての列に border や padding の計算を正しく適用 */
+.container > div {
+  box-sizing: border-box;
+}
+
+/* 左カラム */
+.leftside {
+  width: 28%;
+  background-color: rgb(251, 247, 161);
+  border: 5px solid rgb(0, 0, 0);
+  padding: 10px;
+}
+
+/* 中央メイン領域 */
+.body {
+  width: 44%;
+  background-color: rgb(210, 245, 54);
+  border: 5px solid rgb(0, 0, 0);
+  padding: 10px;
+}
+
+/* 右カラム */
+.side {
+  width: 28%;
+  background-color: pink;
+  border: 5px solid rgb(0, 0, 0);
+  padding: 10px;
+}
+
+/* コメントアウトを CSS の正しい書式 /* ... */ に修正 */
+.topcontent {
+  /* text-align: center; */
+}
+
+.bottomcontent {
+  /* background-color: rgb(250, 116, 149); */
+}
+
+.topside {
+  background-color: rgb(243, 111, 212);
+}
+
+.bottomside {
+  background-color: rgb(168, 243, 111);
+}
+
+h2 {
+  background-color: rgb(210, 245, 54);
+  text-align: center;
+}
+
+.blur-edge {
+  width: 100%;
+  max-width: 300px;
+  mask-image: radial-gradient(circle, black 60%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle, black 60%, transparent 100%);
+}
 
 
 
