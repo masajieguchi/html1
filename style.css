@@ -27,9 +27,10 @@ footer > h4 {
 
 /* --- 2段目の3列レイアウトエリア --- */
 .container {  
-     display: flex;
-     justify-content: space-evenly; /* 端も含めて完全均等 */
-     /* または justify-content: space-between; */   
+  display: flex;
+  justify-content: space-between;
+  gap: 15px; /* 列同士の間隔 */
+  padding: 10px;
 }
 
 /* 全ての列に border や padding の計算を正しく適用 */
@@ -37,49 +38,27 @@ footer > h4 {
   box-sizing: border-box;
 }
 
-/* 左カラム */
-.leftside {
-  width: 28%;
-  background-color: rgb(251, 247, 161);
-  border: 5px solid rgb(0, 0, 0);
-  padding: 10px;
-}
-
-/* 中央メイン領域 */
-.body {
-  width: 44%;
-  background-color: rgb(210, 245, 54);
-  border: 5px solid rgb(0, 0, 0);
-  padding: 10px;
-}
-
-/* 右カラム */
+/* 3つのdiv共通設定（同じ幅・headerと同じ背景色・3D影効果） */
+.leftside,
+.body,
 .side {
-  width: 28%;
-  background-color: pink;
-  border: 5px solid rgb(0, 0, 0);
-  padding: 10px;
+  flex: 1;                             /* 3つの幅を完全に均等化 */
+  background-color: rgb(182, 245, 255); /* headerと同じ水色 */
+  border: 2px solid #53a3b4;           /* 黒枠から立体感に合ったカラーに変更 */
+  border-radius: 12px;                 /* 角を少し丸く */
+  padding: 15px;
+
+  /* 3D表示（立体感を生み出す2重の影） */
+  box-shadow: 
+    5px 5px 10px rgba(0, 0, 0, 0.15), 
+    -3px -3px 6px rgba(255, 255, 255, 0.7);
 }
 
-/* コメントアウトを CSS の正しい書式 /* ... */ に修正 */
-.topcontent {
-  /* text-align: center; */
-}
-
-.bottomcontent {
-  /* background-color: rgb(250, 116, 149); */
-}
-
-.topside {
-  background-color: rgb(243, 111, 212);
-}
-
-.bottomside {
-  background-color: rgb(168, 243, 111);
-}
-
+/* --- 内側の個別の背景色設定を解除して統一感を出す --- */
+.topside,
+.bottomside,
 h2 {
-  background-color: rgb(210, 245, 54);
+  background-color: transparent;
   text-align: center;
 }
 
@@ -89,19 +68,3 @@ h2 {
   mask-image: radial-gradient(circle, black 60%, transparent 100%);
   -webkit-mask-image: radial-gradient(circle, black 60%, transparent 100%);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
