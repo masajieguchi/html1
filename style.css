@@ -56,10 +56,9 @@ footer > h4 {
 
 /* --- 内側の個別の背景色設定を解除して統一感を出す --- */
 .topside,
-.bottomside,
-h2 {
+.bottomside{
   background-color: transparent;
-  text-align: center;
+  text-align: left; /* テキストやリストを左揃えにする */
 }
 
 .blur-edge {
@@ -67,4 +66,11 @@ h2 {
   max-width: 300px;
   mask-image: radial-gradient(circle, black 60%, transparent 100%);
   -webkit-mask-image: radial-gradient(circle, black 60%, transparent 100%);
+}
+
+/* カラム内の見出し（h2, h3）を中央寄せ */
+.leftside h3,
+.body h2,
+.side h3 {
+  text-align: center;
 }
